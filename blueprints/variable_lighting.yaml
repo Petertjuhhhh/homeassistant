@@ -20,7 +20,7 @@ blueprint:
     minimum_lx:
       name: Minimum lx
       description: The minimum amount of lx when starting to decrease the intensity
-      default: 30
+      default: 20
       selector:
         number:
           min: 0
@@ -28,7 +28,7 @@ blueprint:
     maximum_lx:
       name: Maximum lx
       description: The minimum amount of lx when starting to decrease the intensity
-      default: 30
+      default: 120
       selector:
         number:
           min: 0
