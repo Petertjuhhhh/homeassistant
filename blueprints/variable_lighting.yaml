@@ -2,7 +2,6 @@ blueprint:
   name: Variable Lighting
   description: Set brightness based on light intensity
   domain: automation
-  
   input:
     light_sensor:
       name: Light Sensor
