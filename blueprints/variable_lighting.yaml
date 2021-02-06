@@ -10,7 +10,7 @@ blueprint:
       selector:
         entity:
           domain: sensor
-          device_class: illuminance		  
+          device_class: illuminance
     target_brightness:
       name: Brightness
       description: The brightness to control
