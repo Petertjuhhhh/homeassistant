@@ -73,3 +73,4 @@ action:
         {% else %}
           0
         {% endif %}
+    target: !input target_brightness
