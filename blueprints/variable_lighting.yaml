@@ -51,14 +51,14 @@ blueprint:
           max: 10
 trigger:
   platform: state
-  entity_id: !input light_sensor
+  entity_id: light_sensor
 
 action:
   - service: input_number.set_value
     data_template:
-      entity_id: !input target_brightness
+      entity_id: target_brightness
       value: >
-        {% set sensor = states({{light_sensor}}) | float %}
+        {% set sensor = states(light_sensor) | float %}
         {% set max_brightness = maximum_brightness | float %}
         {% set max_lux = maximum_lx | float %}
         {% set min_lux = minimum_lx | float %}
