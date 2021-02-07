@@ -51,7 +51,7 @@ blueprint:
           max: 10
 trigger:
   platform: state
-  entity_id: light_sensor
+  entity_id: !input light_sensor
 
 action:
   - service: input_number.set_value
