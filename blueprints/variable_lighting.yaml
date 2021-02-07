@@ -57,7 +57,7 @@ action:
     data_template:
       entity_id: target_brightness
       value: >
-        {% set sensor = states({{light_sensor}}) | float %}
+        {% set sensor = states(light_sensor) | float %}
         {% set max_brightness = maximum_brightness | float %}
         {% set max_lux = maximum_lx | float %}
         {% set min_lux = minimum_lx | float %}
