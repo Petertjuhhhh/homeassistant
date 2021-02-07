@@ -2,7 +2,16 @@ blueprint:
   name: Variable Lighting
   description: Set brightness based on light intensity
   domain: automation
+  source_url: https://github.com/Subtielbeek/homeassistant/blob/master/blueprints/variable_lighting.yaml
+
   input:
+    motion_sensor:
+      name: Motion Sensor
+      description: When motion is detected from this sensor the light will be set to the calculated brightness.
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: motion
     light_sensor:
       name: Light Sensor
       description: This sensor will be synchronized with the light.
@@ -10,12 +19,13 @@ blueprint:
         entity:
           domain: sensor
           device_class: illuminance
-    target_brightness:
-      name: Brightness
-      description: The brightness to control
+    target_light:
+      name: Light
+      description: The light to control
       selector:
-        entity:
-          domain: input_number
+        target:
+          entity:
+            domain: light
     minimum_lx:
       name: Minimum lx
       description: The minimum amount of lx when starting to decrease the intensity
@@ -56,33 +66,60 @@ blueprint:
           max: 10.0
           mode: slider
           step: 1.0
-  source_url: https://github.com/Subtielbeek/homeassistant/blob/master/blueprints/variable_lighting.yaml
-
+    no_motion_wait:
+      name: Wait time
+      description: Time to leave the light on after last motion is detected.
+      default: 120
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+          
+# If motion is detected within the delay,
+# we restart the script.
+mode: restart
+max_exceeded: silent
+  
 variables:
   light_sensor: !input light_sensor
   max_brightness: !input maximum_brightness
   minimum_lx: !input minimum_lx
   maximum_lx: !input maximum_lx
-
-trigger:
-  platform: state
-  entity_id: !input light_sensor
+  motion_sensor: !input motion_sensor
+  target_light: !input target_light
   
-action:
-  - service: input_number.set_value
-    data_template:
-      entity_id: !input target_brightness
-      value:  >
-        {% set sensor = states(light_sensor) | float %}
-        {% set max_brightness = max_brightness | float %}
-        {% set max_lux = maximum_lx | float %}
-        {% set min_lux = minimum_lx | float %}
-        {% set percentage = ( max_brightness - ( max_brightness / (( max_lux - min_lux) / (sensor - min_lux + 0.001)))) | float %}
+  
+  
+trigger:
+  - platform: state
+    entity_id: !input motion_sensor
+    from: "off"
+    to: "on"
 
-        {% if percentage > max_brightness %}
-          {{ max_brightness }}
-        {% elif percentage > 0 %}
-          {{ percentage | round(0) }}
-        {% else %}
-          0
-        {% endif %}
+
+condition:
+  - condition: state
+    entity_id: !input motion_sensor
+    state: 'on'
+    
+action:
+  - service: light.turn_on
+    target: !input target_light
+    data_template:
+      transition: !input transition_time
+      brightness_pct: "{% set sensor = states(light_sensor) | float %} {% set max_brightness\
+      \ = max_brightness | float %} {% set max_lux = maximum_lx | float %} {% set\
+      \ min_lux = minimum_lx | float %} {% set percentage = ( max_brightness - ( max_brightness\
+      \ / (( max_lux - min_lux) / (sensor - min_lux + 0.001)))) | float %}\n{% if\
+      \ percentage > max_brightness %}\n  {{ max_brightness }}\n{% elif percentage\
+      \ > 0 %}\n  {{ percentage | round(0) }}\n{% else %}\n  0\n{% endif %}"
+      
+  - wait_for_trigger:
+      platform: state
+      entity_id: !input motion_sensor
+      from: "on"
+      to: "off"
+  - delay: !input no_motion_wait
+  - service: light.turn_off
+    target: !input target_light
